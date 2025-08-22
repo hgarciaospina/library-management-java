@@ -2,9 +2,7 @@ package com.jikkosoft.library.domain.model;
 
 import com.jikkosoft.library.domain.enums.BookStatus;
 import com.jikkosoft.library.domain.enums.LoanStatus;
-import com.jikkosoft.library.domain.vo.PenaltyDays;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 /**
  * Represents a loan transaction of a book copy by a member.
@@ -64,6 +62,8 @@ public class Loan {
             return 0;
         }
         long overdue = returnDate.toEpochDay() - dueDate.toEpochDay();
-        return (int) overdue; // Multiply by category penalty if needed
+        // Multiply by penalty defined in book category
+        return (int) overdue * bookCopy.getBook().getCategory().getPenaltyPerDay();
     }
+
 }

@@ -15,6 +15,7 @@ public class Book {
     private final ISBN isbn;
     private final BookTitle title;
     private final Set<String> authors = new HashSet<>();
+    private Category category;
     private int maxLoanDays;
 
     public Book(Long id, ISBN isbn, BookTitle title, int maxLoanDays) {
@@ -33,6 +34,7 @@ public class Book {
     public void addAuthor(String author) {
         authors.add(author);
     }
-
     public void setMaxLoanDays(int maxLoanDays) { this.maxLoanDays = maxLoanDays; }
+    public Category getCategory() { return category; }
+    public void setCategory(Category category) { this.category = category; }
 }
