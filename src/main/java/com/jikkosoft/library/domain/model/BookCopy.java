@@ -1,145 +1,135 @@
 package com.jikkosoft.library.domain.model;
 
-import com.jikkosoft.library.domain.enums.BookStatus;
 import com.jikkosoft.library.domain.vo.CopyNumber;
-
+import com.jikkosoft.library.domain.enums.BookStatus;
 import java.util.Objects;
 
 /**
- * Represents a physical copy of a book in the library collection.
- * Each copy is uniquely identified by:
- * - The owning library.
- * - The parent book.
- * - Its copy number.
+ * Domain model representing a physical copy of a Book in a Library.
  *
- * Domain invariants:
- * - A copy must always be associated with a valid book and library.
- * - Copy number cannot be null (uniqueness enforced externally).
- * - Shelf location cannot be null or blank.
+ * Responsibilities:
+ * - Tracks immutable references to Book, Library, CopyNumber, and Barcode.
+ * - Supports mutable status and shelf location.
+ * - Integrates with audit tracking via BaseEntity.
+ *
+ * Validation rules:
+ * - book, library, copyNumber, and barcode cannot be null.
+ * - shelfLocation cannot be null or blank.
  * - Status defaults to AVAILABLE at creation.
  *
- * Domain queries:
- * - isAvailableForLoan(): only AVAILABLE qualifies.
- * - isAvailableForReservation(): only AVAILABLE qualifies.
- *
- * Mutability:
- * - Status and shelf location can change during the lifecycle of the copy
- *   following allowed transitions:
- *   AVAILABLE -> ON_LOAN | DAMAGED | LOST | DEACTIVATED
- *   ON_LOAN   -> AVAILABLE (upon return)
- *   DAMAGED   -> DEACTIVATED (optional policy) or remain DAMAGED
- *   LOST      -> DEACTIVATED (optional policy) or remain LOST
- *   DEACTIVATED -> (no transitions out)
+ * Notes:
+ * - Builder pattern is used for clean and safe construction.
+ * - Immutable fields cannot be changed after creation.
+ * - Supports integration with AuditLog for before/after snapshots.
  */
-public class BookCopy {
+public class BookCopy extends BaseEntity {
 
     private final Long id;
     private final Book book;
     private final Library library;
     private final CopyNumber copyNumber;
+    private final String barcode;
     private BookStatus status;
     private String shelfLocation;
 
-    public BookCopy(Long id, Book book, Library library, CopyNumber copyNumber, String shelfLocation) {
-        if (book == null) throw new IllegalArgumentException("Book must not be null.");
-        if (library == null) throw new IllegalArgumentException("Library must not be null.");
-        if (copyNumber == null) throw new IllegalArgumentException("CopyNumber must not be null.");
-        if (shelfLocation == null || shelfLocation.isBlank()) throw new IllegalArgumentException("Shelf location must not be null or blank.");
+    // ======================= Private constructor =======================
+    private BookCopy(Builder builder) {
+        super();
+        Objects.requireNonNull(builder.book, "Book must not be null.");
+        Objects.requireNonNull(builder.library, "Library must not be null.");
+        Objects.requireNonNull(builder.copyNumber, "CopyNumber must not be null.");
+        Objects.requireNonNull(builder.barcode, "Barcode must not be null.");
+        if (builder.shelfLocation == null || builder.shelfLocation.isBlank()) {
+            throw new IllegalArgumentException("Shelf location must not be null or blank.");
+        }
 
-        this.id = id;
-        this.book = book;
-        this.library = library;
-        this.copyNumber = copyNumber;
-        this.shelfLocation = shelfLocation.trim();
-        this.status = BookStatus.AVAILABLE;
+        this.id = builder.id;
+        this.book = builder.book;
+        this.library = builder.library;
+        this.copyNumber = builder.copyNumber;
+        this.barcode = builder.barcode;
+        this.shelfLocation = builder.shelfLocation;
+        this.status = builder.status != null ? builder.status : BookStatus.AVAILABLE;
     }
 
-    // --- Queries (functional-friendly) ---
-    /** Indicates the copy is eligible for loan (AVAILABLE only). */
-    public boolean isAvailableForLoan() { return this.status == BookStatus.AVAILABLE; }
+    // ======================= Builder =======================
+    public static class Builder {
+        private Long id;
+        private Book book;
+        private Library library;
+        private CopyNumber copyNumber;
+        private String barcode;
+        private String shelfLocation;
+        private BookStatus status;
 
-    /** Indicates the copy is eligible for reservation (AVAILABLE only). */
-    public boolean isAvailableForReservation() { return this.status == BookStatus.AVAILABLE; }
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder book(Book book) { this.book = book; return this; }
+        public Builder library(Library library) { this.library = library; return this; }
+        public Builder copyNumber(CopyNumber copyNumber) { this.copyNumber = copyNumber; return this; }
+        public Builder barcode(String barcode) { this.barcode = barcode; return this; }
+        public Builder shelfLocation(String shelfLocation) { this.shelfLocation = shelfLocation; return this; }
+        public Builder status(BookStatus status) { this.status = status; return this; }
 
-    // --- Getters ---
+        public BookCopy build() { return new BookCopy(this); }
+    }
+
+    // ======================= Getters =======================
     public Long getId() { return id; }
     public Book getBook() { return book; }
     public Library getLibrary() { return library; }
     public CopyNumber getCopyNumber() { return copyNumber; }
+    public String getBarcode() { return barcode; }
     public BookStatus getStatus() { return status; }
     public String getShelfLocation() { return shelfLocation; }
 
-    // --- Mutators with guarded transitions ---
-    /**
-     * Changes the status of the copy, enforcing valid state transitions.
-     *
-     * @param newStatus New status to assign (must not be null).
-     */
+    // ======================= Mutators =======================
     public void changeStatus(BookStatus newStatus) {
-        if (newStatus == null) throw new IllegalArgumentException("Status must not be null.");
+        Objects.requireNonNull(newStatus, "Status must not be null.");
         if (this.status == BookStatus.DEACTIVATED) {
             throw new IllegalStateException("A deactivated copy cannot change its status.");
         }
-        if (this.status == BookStatus.ON_LOAN && newStatus == BookStatus.DAMAGED) {
-            // This is allowed if damage is discovered during/after a loan; returning the copy will keep it DAMAGED.
-            this.status = BookStatus.DAMAGED;
-            return;
-        }
-        // Allowed transitions matrix (conservative):
-        switch (this.status) {
-            case AVAILABLE:
-                if (newStatus == BookStatus.ON_LOAN || newStatus == BookStatus.DAMAGED
-                        || newStatus == BookStatus.LOST || newStatus == BookStatus.DEACTIVATED) {
-                    this.status = newStatus;
-                } else {
-                    throw new IllegalStateException("Invalid transition from AVAILABLE to " + newStatus);
-                }
-                break;
-            case ON_LOAN:
-                if (newStatus == BookStatus.AVAILABLE || newStatus == BookStatus.LOST || newStatus == BookStatus.DAMAGED) {
-                    this.status = newStatus;
-                } else {
-                    throw new IllegalStateException("Invalid transition from ON_LOAN to " + newStatus);
-                }
-                break;
-            case DAMAGED:
-            case LOST:
-                if (newStatus == BookStatus.DEACTIVATED) {
-                    this.status = newStatus;
-                } else {
-                    throw new IllegalStateException("Invalid transition from " + this.status + " to " + newStatus);
-                }
-                break;
-            default:
-                // DEACTIVATED handled above
-                throw new IllegalStateException("Unhandled current status " + this.status);
-        }
+        this.status = newStatus;
+        markUpdated();
     }
 
-    /**
-     * Updates the shelf location of this copy.
-     * @param newLocation New shelf location (not null/blank).
-     */
     public void updateShelfLocation(String newLocation) {
         if (newLocation == null || newLocation.isBlank()) {
             throw new IllegalArgumentException("Shelf location must not be null or blank.");
         }
-        this.shelfLocation = newLocation.trim();
+        this.shelfLocation = newLocation;
+        markUpdated();
     }
 
-    // Equality based on Library + Book + CopyNumber (business key)
+    // ======================= Equals & HashCode =======================
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof BookCopy)) return false;
-        BookCopy other = (BookCopy) o;
-        return Objects.equals(library, other.library)
-                && Objects.equals(book, other.book)
-                && Objects.equals(copyNumber, other.copyNumber);
+        BookCopy copy = (BookCopy) o;
+        return Objects.equals(book, copy.book) &&
+                Objects.equals(library, copy.library) &&
+                Objects.equals(copyNumber, copy.copyNumber) &&
+                Objects.equals(barcode, copy.barcode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(library, book, copyNumber);
+        return Objects.hash(book, library, copyNumber, barcode);
+    }
+
+    @Override
+    public String toString() {
+        return "BookCopy{" +
+                "id=" + id +
+                ", book=" + (book != null ? book.getTitle() : null) +
+                ", library=" + (library != null ? library.getName() : null) +
+                ", copyNumber=" + copyNumber +
+                ", barcode='" + barcode + '\'' +
+                ", status=" + status +
+                ", shelfLocation='" + shelfLocation + '\'' +
+                ", createdAt=" + getCreatedAt() +
+                ", updatedAt=" + getUpdatedAt() +
+                ", deletedAt=" + getDeletedAt() +
+                '}';
     }
 }

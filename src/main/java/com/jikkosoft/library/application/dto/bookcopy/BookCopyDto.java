@@ -1,13 +1,14 @@
 package com.jikkosoft.library.application.dto.bookcopy;
 
 /**
- * Read model for book copy data.
+ * Data Transfer Object representing a BookCopy entity.
  */
-public record BookCopyResponse(
+public record BookCopyDto(
         Long id,
         Long bookId,
         Long libraryId,
-        int copyNumber,
+        Integer copyNumber,
+        String barcode,
         String status,
         String shelfLocation
 ) {}

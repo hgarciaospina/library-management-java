@@ -5,66 +5,73 @@ import java.util.Objects;
 /**
  * Domain model representing a Book Category.
  *
- * A Category defines the business constraints and rules for books,
- * such as:
- * - Maximum number of loan days allowed for books in this category.
- * - Monetary penalty applied for each overdue day.
+ * Responsibilities:
+ * - Defines rules and constraints for books, e.g., max loan days and penalties.
+ * - Ensures invariants for all fields at construction time.
+ * - Integrates with audit tracking via BaseEntity.
  *
  * Invariants enforced:
  * - Name must not be null or blank.
- * - maxLoanDays must be > 0.
+ * - maxLoanDays must be greater than 0.
  * - penaltyPerDay must be >= 0.
+ *
+ * Notes:
+ * - Builder pattern used for safe and clear construction.
+ * - All fields are immutable after creation.
  */
-public class Category {
+public class Category extends BaseEntity {
 
     private final Long id;
     private final String name;
     private final int maxLoanDays;
     private final int penaltyPerDay;
 
-    /**
-     * Constructs a Category with validation of core invariants.
-     *
-     * @param id             optional domain identifier (nullable for transient instances).
-     * @param name           category name (must not be null or blank).
-     * @param maxLoanDays    maximum number of days a book can be loaned (must be > 0).
-     * @param penaltyPerDay  monetary penalty per overdue day (must be >= 0).
-     * @throws IllegalArgumentException if any invariant is violated.
-     */
-    public Category(Long id, String name, int maxLoanDays, int penaltyPerDay) {
-        if (name == null || name.isBlank()) {
+    // ======================= Private constructor =======================
+    private Category(Builder builder) {
+        super();
+        if (builder.name == null || builder.name.isBlank()) {
             throw new IllegalArgumentException("Category name cannot be null or blank");
         }
-        if (maxLoanDays <= 0) {
+        if (builder.maxLoanDays <= 0) {
             throw new IllegalArgumentException("Category maxLoanDays must be greater than zero");
         }
-        if (penaltyPerDay < 0) {
+        if (builder.penaltyPerDay < 0) {
             throw new IllegalArgumentException("Category penaltyPerDay cannot be negative");
         }
-        this.id = id;
-        this.name = name.trim();
-        this.maxLoanDays = maxLoanDays;
-        this.penaltyPerDay = penaltyPerDay;
+
+        this.id = builder.id;
+        this.name = builder.name.trim();
+        this.maxLoanDays = builder.maxLoanDays;
+        this.penaltyPerDay = builder.penaltyPerDay;
     }
 
-    /** @return domain identifier (nullable if transient). */
+    // ======================= Builder =======================
+    public static class Builder {
+        private Long id;
+        private String name;
+        private int maxLoanDays;
+        private int penaltyPerDay;
+
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder name(String name) { this.name = name; return this; }
+        public Builder maxLoanDays(int days) { this.maxLoanDays = days; return this; }
+        public Builder penaltyPerDay(int penalty) { this.penaltyPerDay = penalty; return this; }
+
+        public Category build() { return new Category(this); }
+    }
+
+    // ======================= Getters =======================
     public Long getId() { return id; }
-
-    /** @return the business name of the category. */
     public String getName() { return name; }
-
-    /** @return maximum number of days allowed for a loan. */
     public int getMaxLoanDays() { return maxLoanDays; }
-
-    /** @return penalty applied for each overdue day. */
     public int getPenaltyPerDay() { return penaltyPerDay; }
 
+    // ======================= Equality & Debug =======================
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Category)) return false;
         Category category = (Category) o;
-        // Equality by name (business key). Adapt if you prefer ID-based equality later.
         return name.equalsIgnoreCase(category.name);
     }
 
@@ -80,6 +87,9 @@ public class Category {
                 ", name='" + name + '\'' +
                 ", maxLoanDays=" + maxLoanDays +
                 ", penaltyPerDay=" + penaltyPerDay +
+                ", createdAt=" + getCreatedAt() +
+                ", updatedAt=" + getUpdatedAt() +
+                ", deletedAt=" + getDeletedAt() +
                 '}';
     }
 }

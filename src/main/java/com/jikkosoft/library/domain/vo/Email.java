@@ -3,12 +3,25 @@ package com.jikkosoft.library.domain.vo;
 import java.util.Objects;
 
 /**
- * Value Object representing an email address.
+ * Value Object representing an email address for a system user or member.
+ *
+ * Responsibilities:
+ * - Encapsulates the email as a domain concept.
+ * - Ensures immutability and proper formatting.
+ * - Provides consistent equality and hash code behavior.
  *
  * Invariants:
- * - Must match a basic email pattern.
- * - Lowercased and trimmed.
- * - Immutable.
+ * - Must not be null.
+ * - Must match a simple email regex pattern.
+ * - Always stored as lowercase and trimmed.
+ *
+ * Example usage:
+ *   Email userEmail = new Email("John.Doe@example.com");
+ *   System.out.println(userEmail.getValue()); // prints "john.doe@example.com"
+ *
+ * Notes:
+ * - Equality is based on normalized email value.
+ * - This VO can be safely used as a key in collections or maps.
  */
 public final class Email {
 
@@ -17,6 +30,12 @@ public final class Email {
 
     private final String value;
 
+    /**
+     * Constructs an Email value object with normalization and validation.
+     *
+     * @param raw the raw email string
+     * @throws IllegalArgumentException if null or invalid format
+     */
     public Email(String raw) {
         if (raw == null) throw new IllegalArgumentException("Email must not be null");
         String normalized = raw.trim().toLowerCase();
@@ -26,7 +45,14 @@ public final class Email {
         this.value = normalized;
     }
 
-    public String getValue() { return value; }
+    /**
+     * Returns the normalized email string.
+     *
+     * @return the email value
+     */
+    public String getValue() {
+        return value;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -37,8 +63,12 @@ public final class Email {
     }
 
     @Override
-    public int hashCode() { return Objects.hash(value); }
+    public int hashCode() {
+        return Objects.hash(value);
+    }
 
     @Override
-    public String toString() { return value; }
+    public String toString() {
+        return value;
+    }
 }

@@ -3,9 +3,10 @@ package com.jikkosoft.library.application.dto.book;
 import java.util.List;
 
 /**
- * Command to create a new Book.
+ * Data Transfer Object representing a Book entity.
  */
-public record CreateBookCommand(
+public record BookDto(
+        Long id,
         String title,
         String isbn,
         String publisher,

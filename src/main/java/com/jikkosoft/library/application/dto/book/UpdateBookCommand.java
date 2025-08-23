@@ -1,11 +1,15 @@
 package com.jikkosoft.library.application.dto.book;
 
+import java.util.List;
+
 /**
- * Command for updating mutable fields of a Book.
+ * Command to update an existing Book.
  */
 public record UpdateBookCommand(
-        Long bookId,
+        Long id,
         String title,
-        Integer publicationYear,
-        Long categoryId
+        String isbn,
+        String publisher,
+        int publicationYear,
+        List<Long> authorIds
 ) {}

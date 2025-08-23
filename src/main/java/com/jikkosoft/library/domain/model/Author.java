@@ -1,82 +1,67 @@
 package com.jikkosoft.library.domain.model;
 
-import java.time.Year;
-import java.util.List;
+import java.time.LocalDate;
+import java.util.Objects;
 
 /**
- * Domain model representing an Author.
+ * Domain model representing an Author of publications.
  *
  * Responsibilities:
- * - Holds bibliographic and biographical data of an author.
- * - Enforces validation rules at construction and setter level.
- * - Designed as a pure domain entity (no persistence annotations).
+ * - Inherits audit fields from BaseEntity (createdAt, updatedAt, deletedAt).
+ * - Identifies an author by ID, first name, last name, and optional metadata.
+ * - Stores biographical details (date of birth, nationality).
+ * - Stores professional details such as affiliation and website.
+ * - Enforces domain-level validation rules for consistency and correctness.
  *
- * Validation responsibilities:
- * - Name must not be null or blank.
- * - Birth year must be before or equal to the current year.
- * - If death year is provided, it must be after the birth year and not after the current year.
+ * Builder pattern is provided for safe and readable construction.
+ *
+ * Validation rules:
+ * - First name and last name must not be null or blank.
+ * - Date of birth (if provided) must not be in the future.
  * - Nationality must not be null or blank.
+ * - Email (if provided) must contain a valid format.
+ * - Website (if provided) must not be blank.
+ *
+ * Invariants:
+ * - Cannot be created or updated with invalid data.
+ * - Email uniqueness assumed to be enforced externally (repository or DB).
  */
-public class Author {
+public class Author extends BaseEntity {
 
-    private Long id;
-    private String fullName;
-    private Year birthYear;
-    private Year deathYear; // optional (null if still alive)
-    private String nationality;
-    private String biography; // free text about the author
-    private List<String> awards;  // list of relevant awards
-    private List<String> aliases; // pen names or alternative names
+    private final Long id;
+    private final String firstName;
+    private final String lastName;
+    private final String nationality;
+    private final LocalDate dateOfBirth;
+    private final String biography;
+    private final String website;
+    private final String email;
+    private final String affiliation;
 
-    public Author(Long id,
-                  String fullName,
-                  Year birthYear,
-                  Year deathYear,
-                  String nationality,
-                  String biography,
-                  List<String> awards,
-                  List<String> aliases) {
+    // ======================= Private constructor =======================
+    private Author(Builder builder) {
+        super(); // initializes createdAt, updatedAt, deletedAt
+        validateName(builder.firstName, "First name");
+        validateName(builder.lastName, "Last name");
+        validateNationality(builder.nationality);
+        validateDateOfBirth(builder.dateOfBirth);
+        validateEmail(builder.email);
 
-        validateName(fullName);
-        validateBirthYear(birthYear);
-        validateDeathYear(birthYear, deathYear);
-        validateNationality(nationality);
-
-        this.id = id;
-        this.fullName = fullName;
-        this.birthYear = birthYear;
-        this.deathYear = deathYear;
-        this.nationality = nationality;
-        this.biography = biography;
-        this.awards = awards;
-        this.aliases = aliases;
+        this.id = builder.id;
+        this.firstName = builder.firstName;
+        this.lastName = builder.lastName;
+        this.nationality = builder.nationality;
+        this.dateOfBirth = builder.dateOfBirth;
+        this.biography = builder.biography;
+        this.website = builder.website;
+        this.email = builder.email;
+        this.affiliation = builder.affiliation;
     }
 
-    public Author() { /* for serializers */ }
-
-    private void validateName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Author name must not be null or blank.");
-        }
-    }
-
-    private void validateBirthYear(Year birthYear) {
-        if (birthYear == null) {
-            throw new IllegalArgumentException("Birth year must not be null.");
-        }
-        if (birthYear.isAfter(Year.now())) {
-            throw new IllegalArgumentException("Birth year cannot be in the future.");
-        }
-    }
-
-    private void validateDeathYear(Year birthYear, Year deathYear) {
-        if (deathYear != null) {
-            if (deathYear.isBefore(birthYear)) {
-                throw new IllegalArgumentException("Death year must be after birth year.");
-            }
-            if (deathYear.isAfter(Year.now())) {
-                throw new IllegalArgumentException("Death year cannot be in the future.");
-            }
+    // ======================= Validation Methods =======================
+    private void validateName(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(field + " must not be null or blank.");
         }
     }
 
@@ -86,28 +71,78 @@ public class Author {
         }
     }
 
-    // Getters / Setters (with validation where appropriate)
+    private void validateDateOfBirth(LocalDate dob) {
+        if (dob != null && dob.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Date of birth cannot be in the future.");
+        }
+    }
+
+    private void validateEmail(String email) {
+        if (email != null && !email.isBlank() && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("Invalid email format: " + email);
+        }
+    }
+
+    // ======================= Getters =======================
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { validateName(fullName); this.fullName = fullName; }
-
-    public Year getBirthYear() { return birthYear; }
-    public void setBirthYear(Year birthYear) { validateBirthYear(birthYear); this.birthYear = birthYear; }
-
-    public Year getDeathYear() { return deathYear; }
-    public void setDeathYear(Year deathYear) { validateDeathYear(this.birthYear, deathYear); this.deathYear = deathYear; }
-
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
     public String getNationality() { return nationality; }
-    public void setNationality(String nationality) { validateNationality(nationality); this.nationality = nationality; }
-
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
     public String getBiography() { return biography; }
-    public void setBiography(String biography) { this.biography = biography; }
+    public String getWebsite() { return website; }
+    public String getEmail() { return email; }
+    public String getAffiliation() { return affiliation; }
 
-    public List<String> getAwards() { return awards; }
-    public void setAwards(List<String> awards) { this.awards = awards; }
+    // ======================= Builder =======================
+    public static class Builder {
+        private Long id;
+        private String firstName;
+        private String lastName;
+        private String nationality;
+        private LocalDate dateOfBirth;
+        private String biography;
+        private String website;
+        private String email;
+        private String affiliation;
 
-    public List<String> getAliases() { return aliases; }
-    public void setAliases(List<String> aliases) { this.aliases = aliases; }
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder firstName(String firstName) { this.firstName = firstName; return this; }
+        public Builder lastName(String lastName) { this.lastName = lastName; return this; }
+        public Builder nationality(String nationality) { this.nationality = nationality; return this; }
+        public Builder dateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; return this; }
+        public Builder biography(String biography) { this.biography = biography; return this; }
+        public Builder website(String website) { this.website = website; return this; }
+        public Builder email(String email) { this.email = email; return this; }
+        public Builder affiliation(String affiliation) { this.affiliation = affiliation; return this; }
+
+        public Author build() { return new Author(this); }
+    }
+
+    @Override
+    public String toString() {
+        return "Author{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", nationality='" + nationality + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", email='" + email + '\'' +
+                ", affiliation='" + affiliation + '\'' +
+                ", createdAt=" + getCreatedAt() +
+                ", updatedAt=" + getUpdatedAt() +
+                ", deletedAt=" + getDeletedAt() +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Author)) return false;
+        Author author = (Author) o;
+        return Objects.equals(id, author.id);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(id); }
 }

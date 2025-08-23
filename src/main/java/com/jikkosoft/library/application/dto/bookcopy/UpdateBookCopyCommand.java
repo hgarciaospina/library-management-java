@@ -1,10 +1,11 @@
 package com.jikkosoft.library.application.dto.bookcopy;
 
-/**
- * Command to add a new physical copy of a book to a library.
- */
-public record AddBookCopyCommand(
+public record UpdateBookCopyCommand(
+        Long id,
         Long bookId,
         Long libraryId,
+        Integer copyNumber,
+        String barcode,
+        String status,
         String shelfLocation
 ) {}
