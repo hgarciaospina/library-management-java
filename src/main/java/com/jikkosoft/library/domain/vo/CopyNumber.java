@@ -1,19 +1,42 @@
 package com.jikkosoft.library.domain.vo;
 
+import java.util.Objects;
+
 /**
- * Value Object representing the copy number of a book.
- * Ensures positive integer and immutability.
+ * Value Object representing the sequential copy number for a book within a library.
+ *
+ * Invariants:
+ * - Must be >= 1.
+ * - Immutable.
  */
 public final class CopyNumber {
 
-    private final int value;
+    private final int number;
 
-    public CopyNumber(int value) {
-        if (value <= 0) {
-            throw new IllegalArgumentException("Copy number must be positive");
+    public CopyNumber(int number) {
+        if (number < 1) {
+            throw new IllegalArgumentException("Copy number must be >= 1");
         }
-        this.value = value;
+        this.number = number;
     }
 
-    public int getValue() { return value; }
+    public int getNumber() { return number; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CopyNumber)) return false;
+        CopyNumber that = (CopyNumber) o;
+        return number == that.number;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(number);
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(number);
+    }
 }

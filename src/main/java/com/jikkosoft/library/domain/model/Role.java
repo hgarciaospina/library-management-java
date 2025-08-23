@@ -3,7 +3,7 @@ package com.jikkosoft.library.domain.model;
 import com.jikkosoft.library.domain.enums.RoleType;
 
 /**
- * Represents a user role within the system.
+ * Represents user roles within the system.
  * Each user can have one or multiple roles assigned.
  */
 public class Role {
@@ -18,5 +18,6 @@ public class Role {
 
     public Long getId() { return id; }
 
+    /** Returns the type of this role (NORMAL_USER, ADMIN, SUPER_USER). */
     public RoleType getRoleType() { return roleType; }
 }

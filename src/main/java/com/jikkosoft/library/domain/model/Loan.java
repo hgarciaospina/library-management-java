@@ -1,113 +1,119 @@
 package com.jikkosoft.library.domain.model;
 
+import com.jikkosoft.library.domain.enums.BookStatus;
 import com.jikkosoft.library.domain.enums.LoanStatus;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
- * Domain model representing a loan transaction of a book by a member.
+ * Domain model representing a Loan transaction.
  *
- * Responsibilities:
- * - Tracks the book, member, loan date, due date, and return date.
- * - Calculates overdue penalties based on due date and return date.
- * - Manages state transitions (ACTIVE → RETURNED or OVERDUE).
+ * Invariants:
+ * - loanDate <= dueDate
+ * - On creation, copy must be AVAILABLE and then transitions to ON_LOAN.
+ * - A returned loan cannot be returned again.
  *
- * Invariants and validation rules:
- * - A loan always references a {@link Book} and a {@link Member}.
- * - A loan starts with {@link LoanStatus#ACTIVE}.
- * - A returned loan must set a returnDate and update its status.
+ * Business rules:
+ * - Penalty days = overdueDays * book.category.penaltyPerDay
+ * - Overdue when today > dueDate and not returned.
  */
 public class Loan {
 
     private final Long id;
-    private final Book book;
+    private final BookCopy bookCopy;
     private final Member member;
+
     private final LocalDate loanDate;
     private final LocalDate dueDate;
 
-    private LocalDate returnDate;
+    private LocalDate returnDate; // null if not returned
     private LoanStatus status;
 
-    /**
-     * Creates a new Loan.
-     *
-     * @param id       optional domain identifier (null for transient instances)
-     * @param book     borrowed book (must not be null)
-     * @param member   borrowing member (must not be null)
-     * @param loanDate date of loan (must not be null)
-     * @param dueDate  due date for return (must not be null, must be after loanDate)
-     */
-    public Loan(Long id, Book book, Member member, LocalDate loanDate, LocalDate dueDate) {
-        if (book == null) throw new IllegalArgumentException("Book cannot be null");
-        if (member == null) throw new IllegalArgumentException("Member cannot be null");
-        if (loanDate == null) throw new IllegalArgumentException("Loan date cannot be null");
-        if (dueDate == null || dueDate.isBefore(loanDate)) {
-            throw new IllegalArgumentException("Due date must be after loan date");
-        }
+    public Loan(Long id, BookCopy bookCopy, Member member, LocalDate loanDate, LocalDate dueDate) {
+        if (bookCopy == null) throw new IllegalArgumentException("Book copy must not be null.");
+        if (member == null) throw new IllegalArgumentException("Member must not be null.");
+        if (loanDate == null || dueDate == null) throw new IllegalArgumentException("Dates must not be null.");
+        if (dueDate.isBefore(loanDate)) throw new IllegalArgumentException("Due date cannot be before loan date.");
+        if (!bookCopy.isAvailableForLoan()) throw new IllegalStateException("Book copy is not available for loan.");
 
         this.id = id;
-        this.book = book;
+        this.bookCopy = bookCopy;
         this.member = member;
         this.loanDate = loanDate;
         this.dueDate = dueDate;
-        this.status = LoanStatus.ACTIVE; // default state
+        this.status = LoanStatus.ACTIVE;
+
+        // Transition copy to ON_LOAN on loan creation
+        this.bookCopy.changeStatus(BookStatus.ON_LOAN);
     }
 
-    // --- Getters ---
-    public Long getId() { return id; }
-    public Book getBook() { return book; }
-    public Member getMember() { return member; }
-    public LocalDate getLoanDate() { return loanDate; }
-    public LocalDate getDueDate() { return dueDate; }
-    public LocalDate getReturnDate() { return returnDate; }
-
+    // --- behavior ---
     /**
-     * Returns the current loan status.
-     *
-     * @return loan status (ACTIVE, RETURNED, OVERDUE)
+     * Returns the book on the given date, enforcing business rules:
+     * - Return date cannot be before loan date.
+     * - A loan cannot be returned more than once.
+     * - Upon return:
+     *   * status becomes RETURNED
+     *   * copy transitions to AVAILABLE unless it was LOST or DAMAGED during the loan
      */
-    public LoanStatus getStatus() { return status; }
-
-    // --- Behavior ---
-
-    /**
-     * Marks the loan as returned.
-     *
-     * @param returnDate date when the book was returned (must not be before loanDate)
-     */
-    public void markAsReturned(LocalDate returnDate) {
+    public void returnBook(LocalDate returnDate) {
+        if (returnDate == null) throw new IllegalArgumentException("Return date must not be null.");
+        if (this.returnDate != null) throw new IllegalStateException("This loan has already been returned.");
         if (returnDate.isBefore(loanDate)) {
-            throw new IllegalArgumentException("Return date cannot be before loan date");
+            throw new IllegalArgumentException("Return date cannot be before the loan date.");
         }
         this.returnDate = returnDate;
-        this.status = LoanStatus.RETURNED;
+        this.status = returnDate.isAfter(dueDate) ? LoanStatus.RETURNED : LoanStatus.RETURNED;
+
+        // If the copy wasn't marked LOST or DAMAGED, it becomes AVAILABLE again.
+        if (bookCopy.getStatus() == BookStatus.ON_LOAN) {
+            bookCopy.changeStatus(BookStatus.AVAILABLE);
+        }
     }
 
     /**
-     * Updates loan status based on current date.
-     * If the due date has passed and the loan has not been returned,
-     * the loan becomes OVERDUE.
+     * Marks the loan as OVERDUE if the current date is past due and the book is not returned.
      */
-    public void updateStatus() {
-        if (status == LoanStatus.ACTIVE && LocalDate.now().isAfter(dueDate)) {
+    public void markOverdueIfNeeded(LocalDate today) {
+        if (this.returnDate == null && today.isAfter(dueDate)) {
             this.status = LoanStatus.OVERDUE;
         }
     }
 
     /**
-     * Calculates penalty days if the loan is overdue.
-     * - If returned late, calculates days between dueDate and returnDate.
-     * - If still overdue, calculates days between dueDate and today.
+     * Calculates penalty days based on overdue days multiplied by category penalty/day.
+     * If not returned or returned on/before due date, returns 0.
      *
-     * @return penalty days, 0 if no penalty
+     * @return number of penalty days
      */
     public int calculatePenaltyDays() {
-        if (status == LoanStatus.RETURNED && returnDate != null && returnDate.isAfter(dueDate)) {
-            return (int) (returnDate.toEpochDay() - dueDate.toEpochDay());
+        if (returnDate == null || !returnDate.isAfter(dueDate)) {
+            return 0;
         }
-        if (status == LoanStatus.OVERDUE) {
-            return (int) (LocalDate.now().toEpochDay() - dueDate.toEpochDay());
-        }
-        return 0;
+        long overdue = returnDate.toEpochDay() - dueDate.toEpochDay();
+        int perDay = bookCopy.getBook().getCategory().getPenaltyPerDay();
+        return (int) overdue * perDay;
     }
+
+    // --- getters ---
+    public Long getId() { return id; }
+    public BookCopy getBookCopy() { return bookCopy; }
+    public Member getMember() { return member; }
+    public LocalDate getLoanDate() { return loanDate; }
+    public LocalDate getDueDate() { return dueDate; }
+    public LocalDate getReturnDate() { return returnDate; }
+    public LoanStatus getStatus() { return status; }
+
+    // Equality by identity
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Loan)) return false;
+        Loan loan = (Loan) o;
+        return Objects.equals(id, loan.id);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(id); }
 }

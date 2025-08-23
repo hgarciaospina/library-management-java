@@ -1,19 +1,44 @@
 package com.jikkosoft.library.domain.vo;
 
+import java.util.Objects;
+
 /**
  * Value Object representing an email address.
- * Ensures proper email format and immutability.
+ *
+ * Invariants:
+ * - Must match a basic email pattern.
+ * - Lowercased and trimmed.
+ * - Immutable.
  */
 public final class Email {
 
+    private static final String SIMPLE_EMAIL_REGEX =
+            "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+
     private final String value;
 
-    public Email(String value) {
-        if (!value.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+    public Email(String raw) {
+        if (raw == null) throw new IllegalArgumentException("Email must not be null");
+        String normalized = raw.trim().toLowerCase();
+        if (!normalized.matches(SIMPLE_EMAIL_REGEX)) {
             throw new IllegalArgumentException("Invalid email format");
         }
-        this.value = value;
+        this.value = normalized;
     }
 
     public String getValue() { return value; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Email)) return false;
+        Email email = (Email) o;
+        return value.equals(email.value);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(value); }
+
+    @Override
+    public String toString() { return value; }
 }
