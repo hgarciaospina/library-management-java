@@ -3,6 +3,9 @@ package com.jikkosoft.library.domain.model;
 import com.jikkosoft.library.domain.vo.ISBN;
 
 import java.time.Year;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Domain model representing a Book (pure domain, no persistence annotations).
@@ -13,28 +16,30 @@ import java.time.Year;
  * - Publication year must be between 1000 and the current year.
  * - ISBN is validated according to the publication year via the ISBN value object.
  * - Category must be provided (defines loan/policy parameters for the book).
+ * - Must have at least one author.
  */
 public class Book {
 
     private Long id;
     private ISBN isbn;
     private String title;
-    private Author author;
+    private List<Author> authors; // ✅ Multiple authors
     private int publicationYear;
     private Category category;
 
     /**
      * Creates a new Book instance, enforcing core validation rules.
      */
-    public Book(Long id, String isbnValue, String title, Author author, int publicationYear, Category category) {
+    public Book(Long id, String isbnValue, String title, List<Author> authors, int publicationYear, Category category) {
         validateTitle(title);
         validatePublicationYear(publicationYear);
         validateCategory(category);
+        validateAuthors(authors);
 
         this.id = id;
         this.isbn = new ISBN(isbnValue, publicationYear);
         this.title = title;
-        this.author = author;
+        this.authors = List.copyOf(authors); // defensive copy ✅
         this.publicationYear = publicationYear;
         this.category = category;
     }
@@ -64,6 +69,15 @@ public class Book {
         }
     }
 
+    private void validateAuthors(List<Author> authors) {
+        if (authors == null || authors.isEmpty()) {
+            throw new IllegalArgumentException("A book must have at least one author.");
+        }
+        if (authors.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("Authors list must not contain null elements.");
+        }
+    }
+
     // --- Getters and setters ---
 
     public Long getId() { return id; }
@@ -82,12 +96,13 @@ public class Book {
         this.title = title;
     }
 
-    public Author getAuthor() { return author; }
-    public void setAuthor(Author author) {
-        if (author == null) {
-            throw new IllegalArgumentException("Author must not be null.");
-        }
-        this.author = author;
+    public List<Author> getAuthors() {
+        return Collections.unmodifiableList(authors); // ✅ defensive read-only
+    }
+
+    public void setAuthors(List<Author> authors) {
+        validateAuthors(authors);
+        this.authors = List.copyOf(authors); // ✅ defensive copy
     }
 
     public int getPublicationYear() { return publicationYear; }
