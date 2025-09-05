@@ -1,10 +1,21 @@
-package com.jikkosoft.library.application.dto.bookcopy;
-/**
- * Command to logically delete a Book.
- * (Business rule: the book-copy is not physically deleted,
- * it is marked as deactivated.)
- */
+package com.jikkosoft.library.application.command.bookcopy;
 
-public record DeleteBookCopyCommand(
-        Long id
-) {}
+import lombok.Builder;
+import lombok.Data;
+import jakarta.validation.constraints.NotNull;
+
+/**
+ * Command to delete (soft-delete) a BookCopy.
+ *
+ * Responsibilities:
+ * - Encapsulates the identifier of the BookCopy to be logically deleted.
+ * - Ensures the identifier is provided and valid.
+ */
+@Data
+@Builder
+public class DeleteBookCopyCommand {
+
+    /** Identifier of the BookCopy to be deleted (required). */
+    @NotNull(message = "The BookCopy ID is required")
+    private Long id;
+}

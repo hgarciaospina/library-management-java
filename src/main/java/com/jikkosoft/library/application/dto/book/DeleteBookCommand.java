@@ -1,11 +1,20 @@
 package com.jikkosoft.library.application.dto.book;
 
-/**
- * Command to logically delete a Book.
- * (Business rule: the book is not physically deleted,
- * it is marked as deactivated.)
- */
-public record DeleteBookCommand(
-        Long id
-) {}
+import lombok.Builder;
+import lombok.Data;
+import jakarta.validation.constraints.NotNull;
 
+/**
+ * Command to logically delete a Book by its ID.
+ *
+ * Responsibilities:
+ * - Encapsulates the identifier of the book to be deleted.
+ * - Ensures the identifier is provided and valid.
+ */
+@Data
+@Builder
+public class DeleteBookCommand {
+
+    @NotNull(message = "Book ID is required")
+    private Long id;
+}

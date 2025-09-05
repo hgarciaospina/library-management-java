@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
  *
  * Responsibilities:
  * - Convert CreateReservationCommand to Reservation entity.
- * - Convert Reservation entity to ReservationDto.
+ * - Convert Reservation entity to ReservationDto (full details) or ReservationSummaryDto (condensed view).
  * - Update Reservation entity from UpdateReservationCommand.
  */
 @Mapper(config = GlobalMapperConfig.class)
@@ -27,12 +27,20 @@ public interface ReservationMapper {
     Reservation toEntity(CreateReservationCommand command);
 
     /**
-     * Converts a Reservation entity to its DTO representation.
+     * Converts a Reservation entity to ReservationDto (full details).
      *
      * @param reservation Domain entity.
-     * @return DTO with all relevant information.
+     * @return DTO with all relevant information, including audit or relational fields.
      */
     ReservationDto toDto(Reservation reservation);
+
+    /**
+     * Converts a Reservation entity to ReservationSummaryDto (condensed view for listings).
+     *
+     * @param reservation Domain entity.
+     * @return Summary DTO with essential information.
+     */
+    ReservationSummaryDto toSummaryDto(Reservation reservation);
 
     /**
      * Updates an existing Reservation entity with data from UpdateReservationCommand.

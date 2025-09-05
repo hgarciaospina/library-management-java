@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
  *
  * Responsibilities:
  * - Convert CreateMemberCommand to Member entity.
- * - Convert Member entity to MemberDto.
+ * - Convert Member entity to MemberDto (full details) or MemberSummaryDto (condensed view).
  * - Update Member entity from UpdateMemberCommand.
  */
 @Mapper(config = GlobalMapperConfig.class)
@@ -27,12 +27,20 @@ public interface MemberMapper {
     Member toEntity(CreateMemberCommand command);
 
     /**
-     * Converts a Member entity to its DTO representation.
+     * Converts a Member entity to MemberDto (full details).
      *
      * @param member Domain entity.
-     * @return DTO with all relevant information.
+     * @return DTO with all relevant information, including audit or relational fields.
      */
     MemberDto toDto(Member member);
+
+    /**
+     * Converts a Member entity to MemberSummaryDto (condensed view for listings).
+     *
+     * @param member Domain entity.
+     * @return Summary DTO with essential information.
+     */
+    MemberSummaryDto toSummaryDto(Member member);
 
     /**
      * Updates an existing Member entity with data from UpdateMemberCommand.

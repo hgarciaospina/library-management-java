@@ -1,7 +1,20 @@
-package com.jikkosoft.library.application.dto.author;
+package com.jikkosoft.library.application.command.author;
+
+import lombok.Builder;
+import lombok.Data;
+import jakarta.validation.constraints.NotNull;
 
 /**
- * Command to delete an Author.
- * Only the ID is required to perform the operation.
+ * Command to delete (soft-delete) an Author.
+ *
+ * Responsibilities:
+ * - Encapsulates the identifier of the author to be deleted.
+ * - Ensures the identifier is provided and valid.
  */
-public record DeleteAuthorCommand(Long id) {}
+@Data
+@Builder
+public class DeleteAuthorCommand {
+
+    @NotNull(message = "Author ID is required")
+    private Long id;
+}

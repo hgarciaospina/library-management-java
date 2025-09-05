@@ -1,10 +1,18 @@
 package com.jikkosoft.library.application.dto.author;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
- * Data Transfer Object representing an Author.
- * Used to send Author information to clients without exposing the domain model directly.
+ * Data Transfer Object (DTO) for Author.
+ *
+ * Responsibilities:
+ * - Provides a safe, immutable representation of an Author for read operations.
+ * - Exposes core details such as name, nationality, and biography.
+ * - Includes audit fields inherited from BaseEntity (createdAt, updatedAt, deletedAt).
+ *
+ * Notes:
+ * - Fields such as biography, website, and affiliation may be optional.
  */
 public record AuthorDto(
         Long id,
@@ -15,5 +23,8 @@ public record AuthorDto(
         String biography,
         String website,
         String email,
-        String affiliation
+        String affiliation,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        LocalDateTime deletedAt
 ) {}

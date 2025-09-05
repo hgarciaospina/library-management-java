@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
  *
  * Responsibilities:
  * - Convert CreateRoleCommand to Role entity.
- * - Convert Role entity to RoleDto.
+ * - Convert Role entity to RoleDto (full details) or RoleSummaryDto (condensed view).
  * - Update Role entity from UpdateRoleCommand.
  */
 @Mapper(config = GlobalMapperConfig.class)
@@ -27,12 +27,20 @@ public interface RoleMapper {
     Role toEntity(CreateRoleCommand command);
 
     /**
-     * Converts a Role entity to its DTO representation.
+     * Converts a Role entity to RoleDto (full details).
      *
      * @param role Domain entity.
      * @return DTO with all relevant information.
      */
     RoleDto toDto(Role role);
+
+    /**
+     * Converts a Role entity to RoleSummaryDto (condensed view for listings).
+     *
+     * @param role Domain entity.
+     * @return Summary DTO with essential information.
+     */
+    RoleSummaryDto toSummaryDto(Role role);
 
     /**
      * Updates an existing Role entity with data from UpdateRoleCommand.

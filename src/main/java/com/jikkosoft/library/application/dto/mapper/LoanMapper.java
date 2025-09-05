@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
  *
  * Responsibilities:
  * - Convert CreateLoanCommand to Loan entity.
- * - Convert Loan entity to LoanDto.
+ * - Convert Loan entity to LoanDto or LoanSummaryDto.
  * - Update Loan entity from UpdateLoanCommand.
  */
 @Mapper(config = GlobalMapperConfig.class)
@@ -27,12 +27,20 @@ public interface LoanMapper {
     Loan toEntity(CreateLoanCommand command);
 
     /**
-     * Converts a Loan entity to its DTO representation.
+     * Converts a Loan entity to LoanDto (full details).
      *
      * @param loan Domain entity.
-     * @return DTO with all relevant information.
+     * @return DTO with all relevant information, including audit fields if applicable.
      */
     LoanDto toDto(Loan loan);
+
+    /**
+     * Converts a Loan entity to LoanSummaryDto (condensed view for listings).
+     *
+     * @param loan Domain entity.
+     * @return Summary DTO with essential information.
+     */
+    LoanSummaryDto toSummaryDto(Loan loan);
 
     /**
      * Updates an existing Loan entity with data from UpdateLoanCommand.

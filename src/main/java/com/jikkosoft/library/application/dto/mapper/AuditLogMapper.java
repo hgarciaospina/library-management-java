@@ -1,7 +1,7 @@
 package com.jikkosoft.library.application.dto.mapper;
 
 import com.jikkosoft.library.application.dto.auditlog.*;
-import com.jikkosoft.library.domain.model.AuditLog;
+import com.jikkosoft.library.shared.common.AuditLog;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

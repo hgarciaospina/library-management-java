@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
  *
  * Responsibilities:
  * - Convert CreateUserCommand to User entity.
- * - Convert User entity to UserDto.
+ * - Convert User entity to UserDto and UserSummaryDto.
  * - Update User entity from UpdateUserCommand.
  */
 @Mapper(config = GlobalMapperConfig.class)
@@ -27,12 +27,20 @@ public interface UserMapper {
     User toEntity(CreateUserCommand command);
 
     /**
-     * Converts a User entity to its DTO representation.
+     * Converts a User entity to its full DTO representation.
      *
      * @param user Domain entity.
      * @return DTO with all relevant information.
      */
     UserDto toDto(User user);
+
+    /**
+     * Converts a User entity to its summary DTO representation.
+     *
+     * @param user Domain entity.
+     * @return DTO with only essential information.
+     */
+    UserSummaryDto toSummaryDto(User user);
 
     /**
      * Updates an existing User entity with data from UpdateUserCommand.

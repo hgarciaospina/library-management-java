@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
  *
  * Responsibilities:
  * - Convert CreateBookCommand to Book entity.
- * - Convert Book entity to BookDto.
+ * - Convert Book entity to BookDto or BookSummaryDto.
  * - Update Book entity from UpdateBookCommand.
  */
 @Mapper(config = GlobalMapperConfig.class)
@@ -27,12 +27,20 @@ public interface BookMapper {
     Book toEntity(CreateBookCommand command);
 
     /**
-     * Converts a Book entity to its DTO representation.
+     * Converts a Book entity to BookDto (full details).
      *
      * @param book Domain entity.
-     * @return DTO with all relevant information.
+     * @return DTO with all relevant information, including authors, category, and audit fields.
      */
     BookDto toDto(Book book);
+
+    /**
+     * Converts a Book entity to BookSummaryDto (condensed view).
+     *
+     * @param book Domain entity.
+     * @return Summary DTO with essential information.
+     */
+    BookSummaryDto toSummaryDto(Book book);
 
     /**
      * Updates an existing Book entity with data from UpdateBookCommand.

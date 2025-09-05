@@ -1,6 +1,7 @@
-package com.jikkosoft.library.domain.model;
+package com.jikkosoft.library.shared.common;
 
 import com.jikkosoft.library.domain.enums.AuditAction;
+import com.jikkosoft.library.domain.model.User;
 
 import java.time.LocalDateTime;
 import java.util.Collections;

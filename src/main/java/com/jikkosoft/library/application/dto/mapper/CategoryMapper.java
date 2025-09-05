@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
  *
  * Responsibilities:
  * - Convert CreateCategoryCommand to Category entity.
- * - Convert Category entity to CategoryDto.
+ * - Convert Category entity to CategoryDto or CategorySummaryDto.
  * - Update Category entity from UpdateCategoryCommand.
  */
 @Mapper(config = GlobalMapperConfig.class)
@@ -27,12 +27,20 @@ public interface CategoryMapper {
     Category toEntity(CreateCategoryCommand command);
 
     /**
-     * Converts a Category entity to its DTO representation.
+     * Converts a Category entity to CategoryDto (full details).
      *
      * @param category Domain entity.
-     * @return DTO with all relevant information.
+     * @return DTO with all relevant information, including audit fields if applicable.
      */
     CategoryDto toDto(Category category);
+
+    /**
+     * Converts a Category entity to CategorySummaryDto (condensed view).
+     *
+     * @param category Domain entity.
+     * @return Summary DTO with essential information.
+     */
+    CategorySummaryDto toSummaryDto(Category category);
 
     /**
      * Updates an existing Category entity with data from UpdateCategoryCommand.
