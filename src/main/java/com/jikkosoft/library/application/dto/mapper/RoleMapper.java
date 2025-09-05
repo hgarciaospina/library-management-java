@@ -1,6 +1,9 @@
 package com.jikkosoft.library.application.dto.mapper;
 
-import com.jikkosoft.library.application.dto.role.*;
+import com.jikkosoft.library.application.dto.role.command.CreateRoleCommand;
+import com.jikkosoft.library.application.dto.role.command.UpdateRoleCommand;
+import com.jikkosoft.library.application.dto.role.dto.RoleDto;
+import com.jikkosoft.library.application.dto.role.dto.RoleSummaryDto;
 import com.jikkosoft.library.domain.model.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,6 +1,9 @@
 package com.jikkosoft.library.application.dto.mapper;
 
-import com.jikkosoft.library.application.dto.loan.*;
+import com.jikkosoft.library.application.dto.loan.command.CreateLoanCommand;
+import com.jikkosoft.library.application.dto.loan.command.UpdateLoanCommand;
+import com.jikkosoft.library.application.dto.loan.dto.LoanDto;
+import com.jikkosoft.library.application.dto.loan.dto.LoanSummaryDto;
 import com.jikkosoft.library.domain.model.Loan;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

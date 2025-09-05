@@ -1,6 +1,9 @@
 package com.jikkosoft.library.application.dto.mapper;
 
-import com.jikkosoft.library.application.dto.member.*;
+import com.jikkosoft.library.application.dto.member.command.CreateMemberCommand;
+import com.jikkosoft.library.application.dto.member.command.UpdateMemberCommand;
+import com.jikkosoft.library.application.dto.member.dto.MemberDto;
+import com.jikkosoft.library.application.dto.member.dto.MemberSummaryDto;
 import com.jikkosoft.library.domain.model.Member;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,10 +1,10 @@
 package com.jikkosoft.library.application.dto.mapper;
 
-import com.jikkosoft.library.application.dto.author.AuthorDto;
+import com.jikkosoft.library.application.dto.author.dto.AuthorDto;
 
-import com.jikkosoft.library.application.dto.author.AuthorSummaryDto;
-import com.jikkosoft.library.application.dto.author.CreateAuthorCommand;
-import com.jikkosoft.library.application.dto.author.UpdateAuthorCommand;
+import com.jikkosoft.library.application.dto.author.dto.AuthorSummaryDto;
+import com.jikkosoft.library.application.dto.author.command.CreateAuthorCommand;
+import com.jikkosoft.library.application.dto.author.command.UpdateAuthorCommand;
 import com.jikkosoft.library.domain.model.Author;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,6 +1,9 @@
 package com.jikkosoft.library.application.dto.mapper;
 
-import com.jikkosoft.library.application.dto.reservation.*;
+import com.jikkosoft.library.application.dto.reservation.command.CreateReservationCommand;
+import com.jikkosoft.library.application.dto.reservation.command.UpdateReservationCommand;
+import com.jikkosoft.library.application.dto.reservation.dto.ReservationDto;
+import com.jikkosoft.library.application.dto.reservation.dto.ReservationSummaryDto;
 import com.jikkosoft.library.domain.model.Reservation;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

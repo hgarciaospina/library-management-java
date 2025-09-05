@@ -1,6 +1,9 @@
 package com.jikkosoft.library.application.dto.mapper;
 
-import com.jikkosoft.library.application.dto.category.*;
+import com.jikkosoft.library.application.dto.category.command.CreateCategoryCommand;
+import com.jikkosoft.library.application.dto.category.command.UpdateCategoryCommand;
+import com.jikkosoft.library.application.dto.category.dto.CategoryDto;
+import com.jikkosoft.library.application.dto.category.dto.CategorySummaryDto;
 import com.jikkosoft.library.domain.model.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,6 +1,9 @@
 package com.jikkosoft.library.application.dto.mapper;
 
-import com.jikkosoft.library.application.dto.book.*;
+import com.jikkosoft.library.application.dto.book.command.CreateBookCommand;
+import com.jikkosoft.library.application.dto.book.command.UpdateBookCommand;
+import com.jikkosoft.library.application.dto.book.dto.BookDto;
+import com.jikkosoft.library.application.dto.book.dto.BookSummaryDto;
 import com.jikkosoft.library.domain.model.Book;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

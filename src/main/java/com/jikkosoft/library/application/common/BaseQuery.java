@@ -1,8 +1,6 @@
 package com.jikkosoft.library.application.common;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Base query for all entity queries.
@@ -14,11 +12,11 @@ import lombok.NoArgsConstructor;
  *
  * Notes:
  * - All entity queries should extend this class.
+ * - Constructors are protected to enforce usage via subclasses.
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public abstract class BaseQuery {
+
     /** Page number, starting at 0. */
     private int page = 0;
 
@@ -33,4 +31,28 @@ public abstract class BaseQuery {
 
     /** Generic search term (can be refined in specific queries). */
     private String searchTerm;
+
+    /**
+     * Protected no-args constructor for subclass flexibility.
+     */
+    protected BaseQuery() {
+        // default values are already set in field declarations
+    }
+
+    /**
+     * Protected all-args constructor to allow subclasses to initialize inherited fields.
+     *
+     * @param page Page number, starting at 0.
+     * @param size Page size (number of items per page).
+     * @param sortBy Field to sort by.
+     * @param sortDirection Sort direction: ASC or DESC.
+     * @param searchTerm Generic search term.
+     */
+    protected BaseQuery(int page, int size, String sortBy, String sortDirection, String searchTerm) {
+        this.page = page;
+        this.size = size;
+        this.sortBy = sortBy;
+        this.sortDirection = sortDirection;
+        this.searchTerm = searchTerm;
+    }
 }
